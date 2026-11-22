@@ -112,50 +112,38 @@ function installKicad
 {
     echo "Installing KiCad..........................."
 
-    # Detect Ubuntu version
-    ubuntu_version=$(lsb_release -rs)
-
-    # Define KiCad PPAs based on Ubuntu version
-    if [[ "$ubuntu_version" == "24.04" || "$ubuntu_version" == "25.04" ]]; then
-        echo "Ubuntu $ubuntu_version detected."
-        kicadppa="kicad/kicad-8.0-releases"
-
-        # Check if KiCad is installed using dpkg-query for the main package
-        if dpkg -s kicad &>/dev/null; then
-            installed_version=$(dpkg-query -W -f='${Version}' kicad | cut -d'.' -f1)
-            if [[ "$installed_version" != "8" ]]; then
-                echo "A different version of KiCad ($installed_version) is installed."
-                read -p "Do you want to remove it and install KiCad 8.0? (yes/no): " response
-
-                if [[ "$response" =~ ^([Yy][Ee][Ss]|[Yy])$ ]]; then
-                    echo "Removing KiCad $installed_version..."
-                    sudo apt-get remove --purge -y kicad kicad-footprints kicad-libraries kicad-symbols kicad-templates
-                    sudo apt-get autoremove -y
-                else
-                    echo "Exiting installation. KiCad $installed_version remains installed."
-                    exit 1
-                fi
+    # Check if KiCad 8 is already installed
+    if dpkg -s kicad &>/dev/null; then
+        installed_version=$(dpkg-query -W -f='${Version}' kicad | cut -d'.' -f1)
+        if [[ "$installed_version" == "8" ]]; then
+            echo "KiCad 8.0 is already installed."
+            return 0
+        else
+            echo "A different version of KiCad ($installed_version) is installed."
+            read -p "Do you want to remove it and install KiCad 8.0? (yes/no): " response
+            if [[ "$response" =~ ^([Yy][Ee][Ss]|[Yy])$ ]]; then
+                echo "Removing KiCad $installed_version..."
+                sudo apt-get remove --purge -y kicad kicad-footprints kicad-libraries kicad-symbols kicad-templates
+                sudo apt-get autoremove -y
             else
-                echo "KiCad 8.0 is already installed."
-                exit 0
+                echo "Exiting installation. KiCad $installed_version remains installed."
+                exit 1
             fi
         fi
-
-    else
-        kicadppa="kicad/kicad-6.0-releases"
     fi
 
-    # Check if the PPA is already added
+    # KiCad 8 PPA configuration with fallback
+    kicadppa="kicad/kicad-8.0-releases"
     if ! grep -q "^deb .*${kicadppa}" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
         echo "Adding KiCad PPA to local apt repository: $kicadppa"
-        sudo add-apt-repository -y "ppa:$kicadppa"
+        sudo add-apt-repository -y "ppa:$kicadppa" || echo "Note: PPA not available for this release, using Ubuntu official repositories..."
         sudo apt-get update
     else
         echo "KiCad PPA is already present in sources."
     fi
 
-    # Install KiCad packages
-    sudo apt-get install -y --no-install-recommends kicad=8.0.8+dfsg-1 kicad-footprints kicad-libraries kicad-symbols kicad-templates
+    # Install KiCad packages without fragile version pinning
+    sudo apt-get install -y --no-install-recommends kicad kicad-footprints kicad-symbols kicad-templates
 
     echo "KiCad installation completed successfully!"
 }
