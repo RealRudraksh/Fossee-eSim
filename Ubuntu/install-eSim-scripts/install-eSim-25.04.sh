@@ -20,10 +20,14 @@
 #      REVISION: Sunday 25 May 2025 17:40
 #=============================================================================
 
-# All variables goes here
-config_dir="$HOME/.esim"
+# Determine actual calling user when script is run with sudo
+TARGET_USER="${SUDO_USER:-$USER}"
+TARGET_HOME=$(getent passwd "$TARGET_USER" | cut -d: -f6 2>/dev/null)
+[ -z "$TARGET_HOME" ] && TARGET_HOME="$HOME"
+
+config_dir="$TARGET_HOME/.esim"
 config_file="config.ini"
-eSim_Home=`pwd`
+eSim_Home=$(pwd)
 ngspiceFlag=0
 
 ## All Functions goes here
