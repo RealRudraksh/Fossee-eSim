@@ -219,23 +219,35 @@ function installDependency
 
 function copyKicadLibrary
 {
+    echo "Configuring custom KiCad Library for eSim..."
 
-    #Extract custom KiCad Library
-    tar -xJf library/kicadLibrary.tar.xz
-
-    if [ -d ~/.config/kicad/6.0 ];then
-        echo "kicad config folder already exists"
-    else 
-        echo ".config/kicad/6.0 does not exist"
-        mkdir -p ~/.config/kicad/6.0
+    if [ -f "library/kicadLibrary.tar.xz" ]; then
+        tar -xJf library/kicadLibrary.tar.xz
+    else
+        echo "Warning: library/kicadLibrary.tar.xz not found. Skipping extraction."
+        return 0
     fi
 
-    # Copy symbol table for eSim custom symbols 
-    cp kicadLibrary/template/sym-lib-table ~/.config/kicad/6.0/
-    echo "symbol table copied in the directory"
+    # KiCad 8 configuration directory
+    kicad_config_dir="$TARGET_HOME/.config/kicad/8.0"
+    if [ ! -d "$kicad_config_dir" ]; then
+        mkdir -p "$kicad_config_dir"
+    fi
 
-    # Copy KiCad symbols made for eSim
-    sudo cp -r kicadLibrary/eSim-symbols/* /usr/share/kicad/symbols/
+    # Copy symbol table for eSim custom symbols into KiCad 8 config directory
+    if [ -f "kicadLibrary/template/sym-lib-table" ]; then
+        cp kicadLibrary/template/sym-lib-table "$kicad_config_dir/"
+        echo "eSim sym-lib-table copied into $kicad_config_dir"
+    fi
+
+    # Ensure KiCad system symbols directory exists and copy custom symbols
+    kicad_symbols_dir="/usr/share/kicad/symbols"
+    sudo mkdir -p "$kicad_symbols_dir"
+
+    if [ -d "kicadLibrary/eSim-symbols" ]; then
+        sudo cp -r kicadLibrary/eSim-symbols/* "$kicad_symbols_dir/"
+        echo "eSim custom symbols copied to $kicad_symbols_dir"
+    fi
 
     set +e      # Temporary disable exit on error
     trap "" ERR # Do not trap on error of any command
@@ -246,9 +258,9 @@ function copyKicadLibrary
     set -e      # Re-enable exit on error
     trap error_exit ERR
 
-    #Change ownership from Root to the User
-    sudo chown -R $USER:$USER /usr/share/kicad/symbols/
-
+    # Change ownership of config files to the target user
+    sudo chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.config/kicad"
+    sudo chown -R "$TARGET_USER:$TARGET_USER" "$kicad_symbols_dir"
 }
 
 
