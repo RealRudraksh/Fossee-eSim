@@ -151,69 +151,54 @@ function installKicad
 
 function installDependency
 {
-
     set +e      # Temporary disable exit on error
     trap "" ERR # Do not trap on error of any command
 
-    # Update apt repository
     echo "Updating apt index files..................."
     sudo apt-get update
     
     set -e      # Re-enable exit on error
     trap error_exit ERR
     
-    echo "Instaling virtualenv......................."
-    sudo apt install python3-virtualenv
-   
-    echo "Creating virtual environment to isolate packages "
-    virtualenv $config_dir/env
+    echo "Installing system Python and GUI dependencies for Ubuntu 25.04..."
+    sudo apt-get install -y \
+        python3-venv \
+        python3-virtualenv \
+        python3-pip \
+        python3-pyqt5 \
+        python3-matplotlib \
+        python3-numpy \
+        python3-psutil \
+        python3-setuptools \
+        xterm
+
+    echo "Creating virtual environment with system site packages enabled..."
+    rm -rf "$config_dir/env"
+    # Python 3.13 / PEP 668: --system-site-packages enables access to Ubuntu's native python3-pyqt5
+    # without compiling PyQt5 from source on PyPI (which has no wheels for Python 3.13)
+    python3 -m venv --system-site-packages "$config_dir/env" || virtualenv --system-site-packages "$config_dir/env"
     
     echo "Starting the virtual env..................."
-    source $config_dir/env/bin/activate
+    source "$config_dir/env/bin/activate"
 
-    echo "Upgrading Pip.............................."
-    pip install --upgrade pip
-    
-    echo "Installing Xterm..........................."
-    sudo apt-get install -y xterm
-    
-    echo "Installing Psutil.........................."
-    sudo apt-get install -y python3-psutil
-    
-    echo "Installing PyQt5..........................."
-    sudo apt-get install -y python3-pyqt5
+    echo "Upgrading Pip inside virtual environment..."
+    "$config_dir/env/bin/pip" install --upgrade pip
 
-    echo "Installing Matplotlib......................"
-    sudo apt-get install -y python3-matplotlib
-
-    echo "Installing Setuptools..................."
-    sudo apt-get install -y python3-setuptools
-
-    # Install NgVeri Depedencies
-    echo "Installing Pip3............................"
-    sudo apt install -y python3-pip
-
+    # Install NgVeri pure-python dependencies inside virtual environment
     echo "Installing Watchdog........................"
-    pip3 install watchdog
+    "$config_dir/env/bin/pip" install watchdog
 
     echo "Installing Hdlparse........................"
-    pip3 install --upgrade https://github.com/hdl/pyhdlparser/tarball/master
+    "$config_dir/env/bin/pip" install hdlparse
 
     echo "Installing Makerchip......................."
-    pip3 install makerchip-app
+    "$config_dir/env/bin/pip" install makerchip-app
 
     echo "Installing SandPiper Saas.................."
-    pip3 install sandpiper-saas
+    "$config_dir/env/bin/pip" install sandpiper-saas
 
-   
-    echo "Installing Hdlparse......................"
-    pip3 install hdlparse
-
-    echo "Installing matplotlib................"
-    pip3 install matplotlib
-
-    echo "Installing PyQt5............."
-    pip3 install PyQt5  
+    # Adjust permissions of virtualenv for the target user
+    chown -R "$TARGET_USER:$TARGET_USER" "$config_dir"
 }
 
 
