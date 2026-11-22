@@ -87,24 +87,21 @@ function installNghdl
 
 function installSky130Pdk
 {
-
     echo "Installing SKY130 PDK......................"
     
-    # Extract SKY130 PDK
-    tar -xJf library/sky130_fd_pr.tar.xz
-
-    # Remove any previous sky130-fd-pdr instance, if any
-    sudo rm -rf /usr/share/local/sky130_fd_pr
-
-    # Copy SKY130 library
-    echo "Copying SKY130 PDK........................."
-
-    sudo mkdir -p /usr/share/local/
-    sudo mv sky130_fd_pr /usr/share/local/
-
-    # Change ownership from root to the user
-    sudo chown -R $USER:$USER /usr/share/local/sky130_fd_pr/
-
+    if [ -f "library/sky130_fd_pr.tar.xz" ]; then
+        echo "Extracting SKY130 PDK archive..."
+        tar -xJf library/sky130_fd_pr.tar.xz
+        sudo rm -rf /usr/share/local/sky130_fd_pr
+        sudo mkdir -p /usr/share/local/
+        sudo mv sky130_fd_pr /usr/share/local/
+        sudo chown -R "$TARGET_USER:$TARGET_USER" /usr/share/local/sky130_fd_pr/
+        echo "SKY130 PDK installed successfully at /usr/share/local/sky130_fd_pr"
+    elif [ -d "/usr/share/local/sky130_fd_pr" ]; then
+        echo "SKY130 PDK is already present at /usr/share/local/sky130_fd_pr"
+    else
+        echo "Notice: library/sky130_fd_pr.tar.xz not found. Skipping local extraction."
+    fi
 }
 
 
