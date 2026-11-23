@@ -1,13 +1,14 @@
 # eSim 2.5 Upgradation Technical Report: Ubuntu 25.04+ Compatibility & Dependency Resolution
 
-**Screening Task 4:** eSim Upgradation (Computer Science and Engineering & Related Disciplines)  
-**Organization:** FOSSEE (Free/Libre and Open Source Software for Education), IIT Bombay  
+**Program:** FOSSEE Winter Internship 2026, IIT Bombay  
+**Screening Task:** Task 4. eSim Upgradation (CSE and Related Fields)  
 **Candidate Name:** Rudraksh Singh Khichi  
+**Candidate Email:** rudrakshsinghkhichi@gmail.com  
 **GitHub Profile:** [https://github.com/RealRudraksh](https://github.com/RealRudraksh)  
 **Forked Repository:** [https://github.com/RealRudraksh/Fossee-eSim/tree/installers](https://github.com/RealRudraksh/Fossee-eSim/tree/installers)  
 **Target Branch:** `installers`  
 **Target Distribution:** Ubuntu 25.04 (Plucky Puffin, 64-bit x86_64) & Subsequent Releases  
-**Evaluation Date:** November 2026  
+**Submission Date:** 23 November 2026  
 
 ---
 
